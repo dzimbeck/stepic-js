@@ -1,0 +1,1093 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>STEPIC Steganography Encoder / Decoder</title>
+<style>
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto,
+        Oxygen, Ubuntu, Cantarell, sans-serif;
+    background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+    min-height: 100vh;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+}
+
+.container {
+    background: white;
+    border-radius: 20px;
+    box-shadow: 0 20px 40px rgba(0, 0, 0, 0.1);
+    padding: 40px;
+    max-width: 700px;
+    width: 100%;
+}
+
+h1 {
+    text-align: center;
+    color: #333;
+    margin-bottom: 10px;
+    font-size: 28px;
+}
+
+.subtitle {
+    text-align: center;
+    color: #666;
+    margin-bottom: 30px;
+    font-size: 14px;
+}
+
+.upload-area {
+    border: 2px dashed #667eea;
+    border-radius: 12px;
+    padding: 40px;
+    text-align: center;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    background: #f8f9ff;
+}
+
+.upload-area:hover {
+    border-color: #764ba2;
+    background: #f0f2ff;
+}
+
+.upload-area.dragover {
+    border-color: #764ba2;
+    background: #e8ebff;
+    transform: scale(1.02);
+}
+
+.upload-icon {
+    font-size: 48px;
+    color: #667eea;
+    margin-bottom: 15px;
+}
+
+.upload-text {
+    color: #333;
+    font-size: 16px;
+    margin-bottom: 10px;
+}
+
+.upload-hint {
+    color: #666;
+    font-size: 14px;
+}
+
+input[type="file"] {
+    display: none;
+}
+
+.preview {
+    margin-top: 20px;
+    text-align: center;
+}
+
+.preview img {
+    max-width: 200px;
+    max-height: 200px;
+    border-radius: 8px;
+    box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
+}
+
+.progress {
+    display: none;
+    margin-top: 20px;
+}
+
+.progress-bar {
+    width: 100%;
+    height: 8px;
+    background: #e0e0e0;
+    border-radius: 4px;
+    overflow: hidden;
+}
+
+.progress-fill {
+    height: 100%;
+    background: linear-gradient(90deg, #667eea, #764ba2);
+    width: 0%;
+    transition: width 0.3s ease;
+}
+
+.progress-text {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
+}
+
+.results {
+    display: none;
+    margin-top: 30px;
+}
+
+.result-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 15px;
+}
+
+.result-title {
+    font-size: 20px;
+    color: #333;
+    font-weight: 600;
+}
+
+.download-btn {
+    background: #667eea;
+    color: white;
+    border: none;
+    padding: 8px 16px;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 14px;
+    transition: background 0.3s ease;
+}
+
+.download-btn:hover {
+    background: #764ba2;
+}
+
+.result-content {
+    background: #f8f9ff;
+    border-radius: 8px;
+    padding: 20px;
+    max-height: 400px;
+    overflow-y: auto;
+    white-space: pre-wrap;
+    word-break: break-all;
+    font-family: 'Courier New', monospace;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.error-message {
+    display: none;
+    background: #ffebee;
+    color: #c62828;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.info-box {
+    background: #e8f5e9;
+    border-left: 4px solid #4caf50;
+    padding: 15px;
+    margin-bottom: 20px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    color: #2e7d32;
+}
+
+.file-info {
+    display: none;
+    background: #f5f5f5;
+    padding: 15px;
+    border-radius: 8px;
+    margin-top: 20px;
+    font-size: 14px;
+}
+
+.file-info-item {
+    display: flex;
+    justify-content: space-between;
+    margin-bottom: 8px;
+}
+
+.file-info-item:last-child {
+    margin-bottom: 0;
+}
+
+.file-info-label {
+    font-weight: 600;
+    color: #555;
+}
+
+.file-info-value {
+    color: #333;
+}
+
+.encoding-tabs {
+    display: flex;
+    margin-top: 15px;
+    border-bottom: 1px solid #e0e0e0;
+}
+
+.encoding-tab {
+    padding: 10px 20px;
+    cursor: pointer;
+    border: none;
+    background: none;
+    font-size: 14px;
+    color: #666;
+    transition: all 0.3s ease;
+    border-bottom: 2px solid transparent;
+}
+
+.encoding-tab.active {
+    color: #667eea;
+    border-bottom-color: #667eea;
+}
+
+.encoding-content {
+    display: none;
+    margin-top: 15px;
+}
+
+.encoding-content.active {
+    display: block;
+}
+
+.python-2-warning {
+    background: #fff3cd;
+    color: #856404;
+    padding: 12px;
+    border-radius: 6px;
+    margin-top: 15px;
+    font-size: 14px;
+    display: flex;
+    align-items: center;
+}
+
+.python-2-warning .icon {
+    margin-right: 10px;
+    font-size: 20px;
+}
+
+.decoder-status {
+    background: #e3f2fd;
+    border-left: 4px solid #2196f3;
+    padding: 15px;
+    margin-top: 20px;
+    border-radius: 0 8px 8px 0;
+    font-size: 14px;
+    color: #0d47a1;
+}
+
+.decoder-status strong {
+    display: inline-block;
+    min-width: 150px;
+}
+
+/* Additional layout for the encoding form, using the existing theme. */
+.section-title {
+    font-size: 20px;
+    color: #333;
+    margin: 25px 0 15px;
+}
+
+.encoder-section {
+    border-top: 1px solid #e0e0e0;
+    margin-top: 35px;
+    padding-top: 5px;
+}
+
+.form-group {
+    margin-top: 20px;
+}
+
+.form-label {
+    display: block;
+    font-size: 14px;
+    font-weight: 600;
+    color: #555;
+    margin-bottom: 8px;
+}
+
+.message-input,
+.encoding-select {
+    width: 100%;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    padding: 12px;
+    background: #f8f9ff;
+    color: #333;
+    font: inherit;
+    font-size: 14px;
+}
+
+.message-input {
+    min-height: 140px;
+    resize: vertical;
+}
+
+.form-hint {
+    margin-top: 10px;
+    color: #666;
+    font-size: 14px;
+    line-height: 1.5;
+}
+
+.actions {
+    display: flex;
+    gap: 10px;
+    flex-wrap: wrap;
+    margin-top: 20px;
+}
+
+.download-btn:disabled {
+    opacity: 0.5;
+    cursor: not-allowed;
+}
+
+.upload-area[aria-disabled="true"] {
+    opacity: 0.6;
+    cursor: wait;
+}
+
+button:focus-visible,
+.upload-area:focus-visible,
+textarea:focus-visible,
+select:focus-visible {
+    outline: 3px solid #764ba2;
+    outline-offset: 3px;
+}
+
+.encoding-tabs {
+    overflow-x: auto;
+}
+
+.encoding-tab {
+    flex-shrink: 0;
+}
+
+.file-info-item {
+    gap: 15px;
+}
+
+.file-info-value {
+    overflow-wrap: anywhere;
+    text-align: right;
+}
+
+[hidden] {
+    display: none !important;
+}
+
+@media (max-width: 480px) {
+    .container {
+        padding: 24px;
+    }
+
+    .result-header {
+        gap: 10px;
+        flex-wrap: wrap;
+    }
+}
+</style>
+<script src="./stepic.js" defer></script>
+</head>
+<body>
+<div class="container">
+    <h1>🔍 STEPIC Steganography</h1>
+    <p class="subtitle">
+        Encode messages into PNG images or extract hidden STEPIC data
+    </p>
+
+    <div class="info-box">
+        <strong>About:</strong>
+        This demo uses stepic.js to read and write the STEPIC RGB
+        least-significant-bit format. Files are processed locally.
+        Encoding accepts PNG, JPEG, BMP, and other images your browser
+        can decode, and always produces a PNG. Animated carriers become
+        a single static image. Decoding requires an 8-bit,
+        non-interlaced RGB or RGBA STEPIC PNG.
+    </div>
+
+    <div class="python-2-warning">
+        <span class="icon">⚠️</span>
+        <span>
+            <strong>Note:</strong>
+            STEPIC hides bytes; it does not encrypt or authenticate them.
+            A detected end marker does not prove that an image contains
+            an intentional message.
+        </span>
+    </div>
+
+    <div class="decoder-status" role="status" aria-live="polite">
+        <strong>Status:</strong>
+        <span id="decoderStatus">Ready</span>
+    </div>
+
+    <section aria-labelledby="decodeHeading">
+        <h2 class="section-title" id="decodeHeading">Decode an image</h2>
+
+        <div class="upload-area" id="decodeUpload"
+             role="button" tabindex="0"
+             aria-label="Choose PNG image to decode">
+            <div class="upload-icon">📁</div>
+            <div class="upload-text">Click to upload or drag & drop</div>
+            <div class="upload-hint">Supports STEPIC encoded PNG files</div>
+        </div>
+        <input type="file" id="decodeInput" accept=".png,image/png">
+
+        <div class="preview" id="decodePreview"></div>
+
+        <div class="progress" id="progress" role="status">
+            <div class="progress-bar">
+                <div class="progress-fill" id="progressFill"></div>
+            </div>
+            <div class="progress-text" id="progressText">
+                Analyzing image...
+            </div>
+        </div>
+
+        <div class="file-info" id="fileInfo">
+            <div class="file-info-item">
+                <span class="file-info-label">File Name:</span>
+                <span class="file-info-value" id="fileName">-</span>
+            </div>
+            <div class="file-info-item">
+                <span class="file-info-label">File Size:</span>
+                <span class="file-info-value" id="fileSize">-</span>
+            </div>
+            <div class="file-info-item">
+                <span class="file-info-label">Image Dimensions:</span>
+                <span class="file-info-value" id="imageDimensions">-</span>
+            </div>
+        </div>
+
+        <div class="results" id="results">
+            <div class="result-header">
+                <h3 class="result-title">📄 Extracted Data</h3>
+                <button type="button" class="download-btn" id="downloadRaw">
+                    Download Raw
+                </button>
+            </div>
+
+            <div class="encoding-tabs" aria-label="Output representations">
+                <button type="button" class="encoding-tab active"
+                        data-encoding="utf8" aria-pressed="true">
+                    UTF-8 Text
+                </button>
+                <button type="button" class="encoding-tab"
+                        data-encoding="latin1" aria-pressed="false">
+                    Latin-1 Text
+                </button>
+                <button type="button" class="encoding-tab"
+                        data-encoding="hex" aria-pressed="false">
+                    Hex Dump
+                </button>
+                <button type="button" class="encoding-tab"
+                        data-encoding="base64" aria-pressed="false">
+                    Base64
+                </button>
+                <button type="button" class="encoding-tab"
+                        data-encoding="python2" aria-pressed="false">
+                    Python 2.7 Bytes
+                </button>
+            </div>
+
+            <div class="encoding-content active" id="utf8-content">
+                <div class="result-content" id="resultUtf8"></div>
+            </div>
+            <div class="encoding-content" id="latin1-content">
+                <div class="result-content" id="resultLatin1"></div>
+            </div>
+            <div class="encoding-content" id="hex-content">
+                <div class="result-content" id="resultHex"></div>
+            </div>
+            <div class="encoding-content" id="base64-content">
+                <div class="result-content" id="resultBase64"></div>
+            </div>
+            <div class="encoding-content" id="python2-content">
+                <div class="result-content" id="resultPython2"></div>
+            </div>
+
+            <p class="form-hint" id="decodeSummary"></p>
+        </div>
+
+        <div class="error-message" id="decodeError" role="alert"></div>
+    </section>
+
+    <section class="encoder-section" aria-labelledby="encodeHeading">
+        <h2 class="section-title" id="encodeHeading">
+            Encode a message into an image
+        </h2>
+
+        <form id="encodeForm">
+            <div class="upload-area" id="encodeUpload"
+                 role="button" tabindex="0"
+                 aria-label="Choose carrier image">
+                <div class="upload-icon">🖼️</div>
+                <div class="upload-text">
+                    Choose a carrier image or drag & drop
+                </div>
+                <div class="upload-hint">
+                    PNG, JPEG, BMP, or other browser-supported images.
+                    Your original file will not be modified.
+                </div>
+            </div>
+            <input type="file" id="encodeInput" accept="image/*">
+
+            <div class="preview" id="encodePreview"></div>
+            <p class="form-hint" id="carrierInfo">
+                Select an image to see its message capacity.
+            </p>
+
+            <div class="form-group">
+                <label class="form-label" for="message">Message</label>
+                <textarea class="message-input" id="message"
+                          placeholder="Enter the message to hide..."
+                          required></textarea>
+            </div>
+
+            <div class="form-group">
+                <label class="form-label" for="messageEncoding">
+                    Message encoding
+                </label>
+                <select class="encoding-select" id="messageEncoding">
+                    <option value="utf-8">UTF-8 — recommended</option>
+                    <option value="latin1">Latin-1 — one byte per character</option>
+                </select>
+                <p class="form-hint" id="capacityInfo">
+                    Message size: 0 bytes.
+                </p>
+            </div>
+
+            <div class="actions">
+                <button class="download-btn" type="submit"
+                        id="encodeButton" disabled>
+                    Encode Message
+                </button>
+                <button class="download-btn" type="button"
+                        id="downloadPNG" hidden>
+                    Download Encoded PNG
+                </button>
+            </div>
+        </form>
+
+        <div class="preview" id="encodedPreview"></div>
+        <p class="form-hint" id="encodeSummary" aria-live="polite"></p>
+
+        <div class="error-message" id="encodeError" role="alert"></div>
+    </section>
+</div>
+
+<script>
+document.addEventListener("DOMContentLoaded", () => {
+    "use strict";
+
+    const $ = id => document.getElementById(id);
+
+    const state = {
+        busy: false,
+        carrier: null,
+        carrierInfo: null,
+        decoded: null,
+        encoded: null,
+        outputName: "stepic-encoded.png"
+    };
+
+    const previewURLs = new Map();
+    const DISPLAY_LIMIT = 64 * 1024;
+
+    function formatFileSize(bytes) {
+        if (bytes === 0) return "0 Bytes";
+
+        const units = ["Bytes", "KB", "MB", "GB"];
+        const index = Math.min(
+            units.length - 1,
+            Math.floor(Math.log(bytes) / Math.log(1024))
+        );
+
+        return `${parseFloat(
+            (bytes / 1024 ** index).toFixed(2)
+        )} ${units[index]}`;
+    }
+
+    function clearPreview(id) {
+        const url = previewURLs.get(id);
+
+        if (url) {
+            URL.revokeObjectURL(url);
+            previewURLs.delete(id);
+        }
+
+        $(id).replaceChildren();
+    }
+
+    function setPreview(id, blob, alt) {
+        clearPreview(id);
+
+        const url = URL.createObjectURL(blob);
+        previewURLs.set(id, url);
+
+        const image = document.createElement("img");
+        image.alt = alt;
+        image.src = url;
+        $(id).appendChild(image);
+    }
+
+    window.addEventListener("pagehide", () => {
+        for (const id of [...previewURLs.keys()]) {
+            clearPreview(id);
+        }
+    });
+
+    function showError(id, error) {
+        $(id).textContent = error instanceof Error
+            ? error.message
+            : String(error);
+
+        $(id).style.display = "block";
+    }
+
+    function hideError(id) {
+        $(id).textContent = "";
+        $(id).style.display = "none";
+    }
+
+    function saveBlob(blob, filename) {
+        const url = URL.createObjectURL(blob);
+        const link = document.createElement("a");
+
+        link.href = url;
+        link.download = filename;
+
+        document.body.appendChild(link);
+        link.click();
+        link.remove();
+
+        // Allow the browser to start downloading before revoking the URL.
+        setTimeout(() => URL.revokeObjectURL(url), 60000);
+    }
+
+    function messageBytes() {
+        return Stepic.textToBytes(
+            $("message").value,
+            $("messageEncoding").value
+        );
+    }
+
+    function updateCapacity() {
+        try {
+            const count = messageBytes().length;
+            const capacity = state.carrierInfo?.capacity;
+
+            const suffix = capacity === undefined
+                ? ""
+                : ` / ${capacity.toLocaleString()} bytes available`;
+
+            $("capacityInfo").textContent =
+                `Message size: ${count.toLocaleString()} bytes${suffix}.`;
+
+            if (capacity !== undefined && count > capacity) {
+                $("capacityInfo").textContent += " Message is too large.";
+            }
+
+            $("encodeButton").disabled =
+                state.busy ||
+                !state.carrier ||
+                !count ||
+                count > (capacity ?? 0);
+        } catch (error) {
+            $("capacityInfo").textContent = error.message;
+            $("encodeButton").disabled = true;
+        }
+    }
+
+    function setBusy(busy, status) {
+        state.busy = busy;
+        $("decoderStatus").textContent = status;
+
+        for (const id of [
+            "decodeInput",
+            "encodeInput",
+            "message",
+            "messageEncoding",
+            "downloadRaw",
+            "downloadPNG"
+        ]) {
+            $(id).disabled = busy;
+        }
+
+        for (const id of ["decodeUpload", "encodeUpload"]) {
+            $(id).setAttribute("aria-disabled", String(busy));
+        }
+
+        updateCapacity();
+    }
+
+    // Inputs are siblings of upload areas, avoiding recursive clicks.
+    function connectUpload(areaId, inputId, handler) {
+        const area = $(areaId);
+        const input = $(inputId);
+
+        area.addEventListener("click", () => {
+            if (!state.busy) input.click();
+        });
+
+        area.addEventListener("keydown", event => {
+            if (event.key === "Enter" || event.key === " ") {
+                event.preventDefault();
+                if (!state.busy) input.click();
+            }
+        });
+
+        area.addEventListener("dragover", event => {
+            event.preventDefault();
+
+            if (!state.busy) {
+                area.classList.add("dragover");
+            }
+        });
+
+        area.addEventListener("dragleave", () => {
+            area.classList.remove("dragover");
+        });
+
+        area.addEventListener("drop", event => {
+            event.preventDefault();
+            area.classList.remove("dragover");
+
+            if (state.busy) return;
+
+            const file = event.dataTransfer.files[0];
+            if (file) void handler(file);
+        });
+
+        input.addEventListener("change", () => {
+            const file = input.files[0];
+
+            // Permit selecting the same file again.
+            input.value = "";
+
+            if (!state.busy && file) {
+                void handler(file);
+            }
+        });
+    }
+
+    // Prevent dropped files outside an upload area from navigating away.
+    window.addEventListener("dragover", event => {
+        event.preventDefault();
+    });
+
+    window.addEventListener("drop", event => {
+        event.preventDefault();
+    });
+
+    const tabs = document.querySelectorAll(".encoding-tab");
+    const panels = document.querySelectorAll(".encoding-content");
+
+    tabs.forEach(tab => {
+        tab.addEventListener("click", () => {
+            tabs.forEach(item => {
+                const active = item === tab;
+                item.classList.toggle("active", active);
+                item.setAttribute("aria-pressed", String(active));
+            });
+
+            panels.forEach(panel => {
+                panel.classList.toggle(
+                    "active",
+                    panel.id === `${tab.dataset.encoding}-content`
+                );
+            });
+        });
+    });
+
+    function pythonBytes(bytes) {
+        const pieces = ["'"];
+
+        for (const byte of bytes) {
+            if (byte === 39) {
+                pieces.push("\\'");
+            } else if (byte === 92) {
+                pieces.push("\\\\");
+            } else if (byte === 9) {
+                pieces.push("\\t");
+            } else if (byte === 10) {
+                pieces.push("\\n");
+            } else if (byte === 13) {
+                pieces.push("\\r");
+            } else if (byte >= 32 && byte < 127) {
+                pieces.push(String.fromCharCode(byte));
+            } else {
+                pieces.push(
+                    `\\x${byte.toString(16).padStart(2, "0")}`
+                );
+            }
+        }
+
+        pieces.push("'");
+        return pieces.join("");
+    }
+
+    function displayResults(bytes, info) {
+        const sample = bytes.subarray(0, DISPLAY_LIMIT);
+        const truncated = sample.length < bytes.length;
+
+        try {
+            if (truncated) {
+                // Streaming mode permits a display cutoff within
+                // a multibyte UTF-8 sequence.
+                $("resultUtf8").textContent =
+                    new TextDecoder("utf-8", { fatal: true }).decode(
+                        sample,
+                        { stream: true }
+                    );
+            } else {
+                $("resultUtf8").textContent =
+                    Stepic.bytesToText(bytes);
+            }
+        } catch (_) {
+            $("resultUtf8").textContent =
+                "This payload is not valid UTF-8 text. " +
+                "Try Latin-1, Hex Dump, or Download Raw.";
+        }
+
+        const binary = Stepic.bytesToText(sample, "latin1");
+
+        $("resultLatin1").textContent = binary;
+
+        $("resultHex").textContent = Array.from(
+            sample,
+            byte => byte.toString(16).padStart(2, "0").toUpperCase()
+        ).join(" ");
+
+        $("resultBase64").textContent = btoa(binary);
+        $("resultPython2").textContent = pythonBytes(sample);
+
+        const unused =
+            info.width * info.height * 3 - bytes.length * 9;
+
+        $("decodeSummary").textContent =
+            `Read ${bytes.length.toLocaleString()} bytes and found an end marker. ` +
+            `${unused.toLocaleString()} RGB channels remain unused. ` +
+            "An end marker alone does not authenticate the payload.";
+
+        if (truncated) {
+            $("decodeSummary").textContent +=
+                ` Views show only the first ${DISPLAY_LIMIT.toLocaleString()} ` +
+                "bytes; Base64 and other representations also cover only that " +
+                "preview. Download Raw saves the complete payload.";
+        }
+
+        $("results").style.display = "block";
+    }
+
+    async function decodeFile(file) {
+        if (state.busy) return;
+
+        setBusy(true, "Decoding...");
+        hideError("decodeError");
+
+        state.decoded = null;
+        $("results").style.display = "none";
+        $("fileInfo").style.display = "none";
+        clearPreview("decodePreview");
+
+        $("progress").style.display = "block";
+        $("progressFill").style.width = "15%";
+        $("progressText").textContent = "Reading PNG...";
+
+        let status = "Decode failed";
+
+        try {
+            // Decoding stays strict: never convert encoded pixels.
+            const info = await Stepic.info(file);
+
+            $("fileName").textContent = file.name;
+            $("fileSize").textContent = formatFileSize(file.size);
+            $("imageDimensions").textContent =
+                `${info.width} × ${info.height} px`;
+
+            $("fileInfo").style.display = "block";
+
+            setPreview(
+                "decodePreview",
+                file,
+                "Image selected for decoding"
+            );
+
+            $("progressFill").style.width = "45%";
+            $("progressText").textContent = "Extracting hidden data...";
+
+            // Stage indicators, not measured decompression percentages.
+            const bytes = await Stepic.decode(file);
+
+            displayResults(bytes, info);
+            state.decoded = bytes;
+
+            $("progressFill").style.width = "100%";
+            status = `Decoded ${bytes.length.toLocaleString()} bytes`;
+        } catch (error) {
+            showError("decodeError", error);
+        } finally {
+            $("progress").style.display = "none";
+            setBusy(false, status);
+        }
+    }
+
+    function invalidateEncodedResult() {
+        state.encoded = null;
+        $("downloadPNG").hidden = true;
+        $("encodeSummary").textContent = "";
+        clearPreview("encodedPreview");
+    }
+
+    async function selectCarrier(file) {
+        if (state.busy) return;
+
+        setBusy(true, "Reading carrier image...");
+        hideError("encodeError");
+        invalidateEncodedResult();
+        clearPreview("encodePreview");
+
+        state.carrier = null;
+        state.carrierInfo = null;
+        $("carrierInfo").textContent = "Preparing carrier image...";
+
+        let status = "Carrier selection failed";
+
+        try {
+            // This allows the same automatic conversion used by encode().
+            const info = await Stepic.info(
+                file,
+                { forEncoding: true }
+            );
+
+            state.carrier = file;
+            state.carrierInfo = info;
+
+            setPreview("encodePreview", file, "Carrier image");
+
+            $("carrierInfo").textContent =
+                `${file.name} · ${formatFileSize(file.size)} · ` +
+                `${info.width} × ${info.height} px · ` +
+                `Capacity: ${info.capacity.toLocaleString()} bytes` +
+                (info.converted
+                    ? " · Automatic conversion to an 8-bit RGBA PNG"
+                    : " · Compatible PNG; no conversion needed");
+
+            status = "Carrier ready";
+        } catch (error) {
+            $("carrierInfo").textContent =
+                "Select an image your browser can decode.";
+
+            showError("encodeError", error);
+        } finally {
+            setBusy(false, status);
+        }
+    }
+
+    $("encodeForm").addEventListener("submit", async event => {
+        event.preventDefault();
+
+        if (state.busy || !state.carrier) return;
+
+        hideError("encodeError");
+        invalidateEncodedResult();
+        setBusy(true, "Encoding message...");
+
+        let status = "Encoding failed";
+
+        try {
+            const bytes = messageBytes();
+
+            // Conversion, if needed, is handled inside the library.
+            const blob = await Stepic.encode(state.carrier, bytes);
+
+            // Verify output before offering it for download.
+            const recovered = await Stepic.decode(blob);
+
+            if (
+                recovered.length !== bytes.length ||
+                !recovered.every(
+                    (byte, index) => byte === bytes[index]
+                )
+            ) {
+                throw new Error(
+                    "Encoded image failed round-trip verification."
+                );
+            }
+
+            state.encoded = blob;
+
+            const base = state.carrier.name.replace(
+                /\.[^/.]+$/,
+                ""
+            );
+
+            state.outputName = `${base || "image"}-stepic.png`;
+
+            setPreview(
+                "encodedPreview",
+                blob,
+                "Encoded PNG image"
+            );
+
+            $("downloadPNG").hidden = false;
+
+            $("encodeSummary").textContent =
+                `Encoded and verified ${bytes.length.toLocaleString()} bytes. ` +
+                `Output size: ${formatFileSize(blob.size)}. ` +
+                "Download the PNG without resizing or converting it. " +
+                "Most nonessential source metadata is omitted.";
+
+            status = "Encoded PNG ready to download";
+        } catch (error) {
+            showError("encodeError", error);
+        } finally {
+            setBusy(false, status);
+        }
+    });
+
+    for (const id of ["message", "messageEncoding"]) {
+        $(id).addEventListener("input", () => {
+            invalidateEncodedResult();
+            hideError("encodeError");
+            updateCapacity();
+        });
+    }
+
+    $("downloadRaw").addEventListener("click", () => {
+        if (!state.decoded || state.busy) return;
+
+        saveBlob(
+            new Blob(
+                [state.decoded],
+                { type: "application/octet-stream" }
+            ),
+            "extracted_data.bin"
+        );
+    });
+
+    $("downloadPNG").addEventListener("click", () => {
+        if (state.encoded && !state.busy) {
+            saveBlob(state.encoded, state.outputName);
+        }
+    });
+
+    if (!globalThis.Stepic) {
+        $("decoderStatus").textContent = "Library not loaded";
+
+        showError(
+            "decodeError",
+            "Could not load stepic.js. Place it beside stepic.html."
+        );
+
+        return;
+    }
+
+    connectUpload("decodeUpload", "decodeInput", decodeFile);
+    connectUpload("encodeUpload", "encodeInput", selectCarrier);
+    updateCapacity();
+});
+</script>
+</body>
+</html>
