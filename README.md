@@ -4,7 +4,7 @@ A vanilla JavaScript implementation of the encoding format used by Python’s ST
 
 Stepic.js embeds messages or binary data into images and extracts data from STEPIC-encoded PNG files. It runs locally in the browser without external JavaScript dependencies.
 
-Try the live demo at: https://dzimbeck.github.io/step-js
+Try the live demo at: https://dzimbeck.github.io/stepic-js
 
 ## Features
 
